@@ -14,6 +14,8 @@ const ordersController = require('./API/Controller/ordersController');
 const usersController = require('./API/Controller/usersController');
 const authJwt = require('./API/Helper/jwt');
 const cors = require('cors');
+const res = require('express/lib/response');
+const errorHandler = require('./API/Helper/errorhandler');
 
 require('dotenv/config');
 
@@ -30,6 +32,28 @@ const connectioString = process.env.CONNECTION_STRING
 app.use(bodyParser.json());
 app.use(morgan('tiny'));
 app.use(authJwt());
+app.use((err, req, res, next) =>
+    {
+        
+        if(err.name === 'UnauthorizedError') 
+        {
+        return res.status(401).json({
+                message: "You are not authorized, make sure that you got permission to handle with this!"
+            })
+        }
+
+        if(err.name === 'ValidationError') 
+        {
+        return res.status(404).json({
+                message: err
+            })
+        } 
+    
+        return res.status(500).json({
+            message: "The server is not respondig according your request."
+        });
+    }
+);
 
 app.use(`${api}/products`, productsController)
 app.use(`${api}/categories`, categoriesController)

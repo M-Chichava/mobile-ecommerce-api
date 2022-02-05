@@ -4,7 +4,7 @@ const { User } = require('../../Domain/user');
 const router = express.Router();
 
 
-router.get(`/list`, async (req, res) =>
+router.get(`/`, async (req, res) =>
     {
         const categoryList = await Category.find().select('name icon color -_id');
 
