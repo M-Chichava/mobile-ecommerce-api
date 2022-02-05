@@ -1,11 +1,12 @@
 const {Category} = require('../../Domain/category');
 const express = require('express');
+const { User } = require('../../Domain/user');
 const router = express.Router();
 
 
-router.get(`/`, async (req, res) =>
+router.get(`/list`, async (req, res) =>
     {
-        const categoryList = await Category.find();
+        const categoryList = await Category.find().select('name icon color -_id');
 
         if(!categoryList)
         {
@@ -34,7 +35,7 @@ router.get(`/:id`, async (req, res) =>
 )
 
 
-router.post(`/`, async (req, res) =>
+router.post(`/register`, async (req, res) =>
     {
         let category = new Category (
             {
@@ -71,7 +72,7 @@ router.put(`/:id`, async (req, res) =>
         
         res.send(category);
     }
-)
+);
 
 router.delete (`/:id`, (req, res) => 
     {

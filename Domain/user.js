@@ -1,55 +1,55 @@
 const mongoose = require('mongoose');
-const { Category } = require('./category');
 
-
-const userSchema = mongoose.Schema({
-    name  : {
+const userSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true,
+    },
+    email: {
+        type: String,
+        required: true,
+    },
+    passwordHash: {
         type: String,
         required: true
     },
-    description  : {
+    phone: {
         type: String,
-        required: true
-    },
-    richdescription  : {
-        type: String,
-        default: ''
-    },
-    imagesUrl  : [{
-        type: String
-    }],  
-    brand  : {
-        type: String,
-        default: ''
-    }, 
-    price  : {
-        type: Number,
-        default: 0,
-    },
-    caregory  : {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Category',
         required: true,
     },
-    countStock  : {
-        type: Number,
-        required: true,
-        min: 0,
-        max: 255,
-    },
-    rating  : {
-        type: Number,
-        default: 0,
-    },
-    isFeatured  : {
+    isAdmin: {
         type: Boolean,
         default: false,
     },
-    dateCreated  : {
-        type: Date,
-        default: Date.now,
+    street: {
+        type: String,
+        default: ''
+    },
+    apartment: {
+        type: String,
+        default: ''
+    },
+    zip :{
+        type: String,
+        default: ''
+    },
+    city: {
+        type: String,
+        default: ''
+    },
+    country: {
+        type: String,
+        default: ''
     }
-})
 
+});
+
+userSchema.virtual('id').get(function () {
+    return this._id.toHexString();
+});
+
+userSchema.set('toJSON', {
+    virtuals: true,
+});
 
 exports.User = mongoose.model('User', userSchema);
