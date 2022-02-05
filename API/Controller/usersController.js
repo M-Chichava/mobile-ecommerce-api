@@ -15,19 +15,7 @@ router.get(`/list`, async (req, res) =>
                 success: false
             });
         }
-        return res.status(200).send(
-            { 
-                id : usersList.id, 
-                name : usersList.name,
-                email: usersList.email,
-                phone: usersList.phone,
-                street : usersList.street,
-                apartment : usersList.apartment,
-                zip : usersList.zip,
-                city : usersList.city,
-                country: usersList.country
-            }
-        );;
+        return res.status(200).send(usersList)
     }
 );
 

@@ -12,7 +12,9 @@ const productsController = require('./API/Controller/productsController');
 const categoriesController= require('./API/Controller/categoriesController');
 const ordersController = require('./API/Controller/ordersController');
 const usersController = require('./API/Controller/usersController');
-const cors = require('cors')
+const authJwt = require('./API/Helper/jwt');
+const cors = require('cors');
+
 require('dotenv/config');
 
 //enable Cors allowing all HTTP Request
@@ -27,6 +29,7 @@ const connectioString = process.env.CONNECTION_STRING
 //Middleware section
 app.use(bodyParser.json());
 app.use(morgan('tiny'));
+app.use(authJwt());
 
 app.use(`${api}/products`, productsController)
 app.use(`${api}/categories`, categoriesController)
