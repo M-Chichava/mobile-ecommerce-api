@@ -8,7 +8,8 @@ function authJtw () {
 
     return expressjwt({
         secret,
-        algorithms : ['HS256']
+        algorithms : ['HS256'],
+        isRevoked: isRevoked
     }).unless({
         path: 
         [
@@ -19,6 +20,14 @@ function authJtw () {
 
         ]
     })
+}
+
+async function isRevoked(req, payload, done){
+    if (!payload.isAdmin){
+        return done(null, true)
+    }
+
+    done();
 }
 
 

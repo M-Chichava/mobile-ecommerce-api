@@ -63,10 +63,10 @@ app.use(`${api}/users`, usersController)
 
 mongoose.connect(connectioString)
 .then(()=>{
-    console.log('Database was Successfuly Connected!')
+    console.log('The connection with database was successfuly!')
 })
 .catch((err)=>{
-    console.log(err,'\n:Thats the error');
+    console.log(err);
 })
 
 app.listen(port, ()=> {

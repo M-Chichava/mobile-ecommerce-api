@@ -95,11 +95,13 @@ router.post(`/login`, async (req, res) => {
     {
         const token = jwt.sign(
             {
-                userId : user.id
+                userId : user.id,
+                isAdmin : user.isAdmin
+
             },
             secret,
             {
-                expiresIn : '30s'
+                expiresIn : '1d'
             }
         )
         return res.status(200).send(
@@ -122,6 +124,7 @@ router.post(`/login`, async (req, res) => {
     }
 });
 
+
 router.delete('/:id', (req, res)=>{
     User.findByIdAndRemove(req.params.id).then(user =>{
         if(user) {
@@ -135,7 +138,7 @@ router.delete('/:id', (req, res)=>{
 })
 
 router.get(`/get/count`, async (req, res) =>{
-    const userCount = await User.countDocuments((count) => count)
+    const userCount = await User.countDocuments()
 
     if(!userCount) {
         res.status(500).json({success: false})
