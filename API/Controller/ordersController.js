@@ -1,10 +1,13 @@
 const {Order} = require('../../Domain/order');
+const {OrderItem} = require('../../Domain/order-item'); 
 const express = require('express');
 const router = express.Router();
 
 
 router.get(`/`, async (req, res) =>{
-    const orderList = await Order.find();
+    const orderList = await Order.find()
+    .populate({path: 'orderItems', populate: 'product'})
+    .populate('user', 'name').sort({'dateOrdered': -1});
 
     if(!orderList)
     {
@@ -18,7 +21,7 @@ router.get(`/`, async (req, res) =>{
 
 router.get(`/:id`, async (req, res) =>
     {
-        const order = await Order.findById(req.params.id);
+        const order = await Order.findById(req.params.id).populate();
 
         if(!order)
         {
@@ -35,23 +38,44 @@ router.get(`/:id`, async (req, res) =>
 
 router.post(`/`, async (req, res) =>{
 
-    const order = new Order(
+    const orderItemIds = Promise.all( req.body.orderItems.map( async orderItem => {
+        
+        let newOrderItem = new OrderItem(
+            {
+                quantity : orderItem.quantity,
+                product : orderItem.product
+            }
+        ) 
+        newOrderItem = await newOrderItem.save()
+       return newOrderItem._id;
+    }));
+
+    const orderItemsIdsResolved = await orderItemIds; 
+
+    let totalPrices = await Promise.all(orderItemsIdsResolved.map(async (orderItemId) => {
+        const orderItem = await OrderItem.findById(orderItemId).populate('product', 'price');
+        const totalPrice = orderItem.product.price * orderItem.quantity;
+
+        return totalPrice
+    }))
+
+    const totalPrice = totalPrices.reduce((a,b) => a + b , 0)
+    let order = new Order(
         {
-            name  : req.body.name,
-            description  : req.body.description,
-            richdescription  : req.body.richdescription,
-            imagesUrl  : req.body.imagesUrl,
-            brand  : req.body.brand,
-            price  : req.body.price,
-            category  : req.body.category,
-            countStock  : req.body.countStock,
-            rating  : req.body.req.body.rating,
-            numReviews  : req.body.req.body.numReviews,
-            isFeatured  : req.body.isFeatured
+            orderItems  :   orderItemsIdsResolved,
+            shippingAddress1    :  req.body.shippingAddress1,
+            shippingAddress2    :  req.body.shippingAddress2,
+            city    :  req.body.city,
+            zip :   req.body.zip,
+            country :  req.body.country,
+            phone   :  req.body.phone,
+            status  : req.body.status,
+            totalPrice  :  totalPrice,
+            user    : req.body.user
         }
     );
 
-    order = await order.save()
+     order = await order.save()
      
     if(!order)
     {
@@ -62,21 +86,11 @@ router.post(`/`, async (req, res) =>{
 
 router.put(`/:id`, async (req, res) => 
     {
-        const order = await order.findByIdAndUpdate
+        const order = await Order.findByIdAndUpdate
         ( 
             req.params.id,
             {
-                nname  : req.body.name,
-                description  : req.body.description,
-                richdescription  : req.body.richdescription,
-                imagesUrl  : req.body.imagesUrl,
-                brand  : req.body.brand,
-                price  : req.body.price,
-                category  : req.body.category,
-                countStock  : req.body.countStock,
-                rating  : req.body.req.body.rating,
-                numReviews  : req.body.req.body.numReviews,
-                isFeatured  : req.body.isFeatured
+                status  : req.body.status,
             },     
             {new: true} 
         )
@@ -92,26 +106,29 @@ router.put(`/:id`, async (req, res) =>
 router.delete (`/:id`, (req, res) => 
     {
         Order.findByIdAndRemove(req.params.id)
-        .then( order =>
+        .then( async order =>
             {
                 if(order)
                 {
+                    await order.orderItems.map(async orderItem => {
+                        await OrderItem.findByIdAndRemove(orderItem)
+                    })
                     return res.status(200).json(
-                            {
-                                success: true,
-                                message: 'the order is deleted'
-                            }
-                        );
+                        {
+                            success: true,
+                            message: 'the order is deleted'
+                        }
+                    );
                 } 
                 else
-                    {
-                        return res.status(404).json(
-                            {
-                                success: false,
-                                message: 'the order was not found'
-                            }
-                        );
-                    }                    
+                {
+                    return res.status(404).json(
+                        {
+                            success: false,
+                            message: 'the order was not found'
+                        }
+                    );
+                }                    
             }
         )
         .catch(err => 
