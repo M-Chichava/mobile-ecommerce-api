@@ -16,6 +16,7 @@ const authJwt = require('./API/Helper/jwt');
 const cors = require('cors');
 const res = require('express/lib/response');
 const errorHandler = require('./API/Helper/errorhandler');
+const path = require('path')
 
 require('dotenv/config');
 
@@ -30,7 +31,8 @@ const connectioString = process.env.CONNECTION_STRING
 
 //Middleware section
 app.use(bodyParser.json());
-app.use(morgan('tiny'));
+app.use(morgan('tiny')); 
+app.use('/', express.static(path.resolve(__dirname, 'images')))
 app.use(authJwt());
 app.use((err, req, res, next) =>
     {
@@ -59,7 +61,6 @@ app.use(`${api}/products`, productsController)
 app.use(`${api}/categories`, categoriesController)
 app.use(`${api}/orders`, ordersController)
 app.use(`${api}/users`, usersController)
-
 
 mongoose.connect(connectioString)
 .then(()=>{

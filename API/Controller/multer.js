@@ -40,11 +40,11 @@ const storageType = {
  
 module.exports = {
     dest: path.resolve(__dirname, '..', '..', 'images'),
-    storage: storageType['local'], 
+    storage: storageType['local'], // change =local= to =s3=
     limits: {
         fileSize: 2 * 1024 * 1024
     },
-    fileFilter : (req, res, file, cb) => {
+    fileFilter : (req, file, cb) => {
         const allowedMimes = [
             'image/jpeg',
             'image/pjpeg',
@@ -55,7 +55,7 @@ module.exports = {
         if(allowedMimes.includes(file.mimetype)) {
             cb(null, true);
         } else {
-            cb (new Error("File type not suported"));
+            cb(new Error("File type not suported"));
         }
     },
 };

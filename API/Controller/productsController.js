@@ -56,13 +56,18 @@ router.post(`/`, multer(multerConfig).single('productImage'), async (req, res) =
 
          res.status(400).send({message: 'The product file is missing'});
     }
+    
     const fileName = req.file.filename
+
     const basePath = `${req.protocol}://${req.get('host')}/images`;  
+
+    const imageurl = `${basePath}${fileName}`;
+
     const product = new Product({
         name  : req.body.name,
         description  : req.body.description,
         richdescription  :  req.body.richdescription,
-        productImage: `${basePath}${fileName}`,  
+        productImage: imageurl,  
         brand  :  req.body.brand, 
         price  :  req.body.price,
         category  :  req.body.category,
@@ -84,7 +89,9 @@ router.post(`/`, multer(multerConfig).single('productImage'), async (req, res) =
 router.put(`/:id`, multer(multerConfig).single('productImage'), async (req, res) => 
     {
        if(!mongoose.isValidObjectId(req.params.id)) 
+        {
             return res.status(400).send('The product id is invalid')
+        }
 
         const category = await Category.findById(req.body.category)
 
@@ -118,7 +125,7 @@ router.put(`/:id`, multer(multerConfig).single('productImage'), async (req, res)
                 name  : req.body.name,
                 description  : req.body.description,
                 richdescription  : req.body.richdescription,
-                productImages  : req.body.image,
+                productImage  : imagePath,
                 brand  : req.body.brand,
                 price  : req.body.price,
                 category  : req.body.category,
@@ -196,5 +203,41 @@ router.get('/get/feature/:count', async (req, res) =>{
     
     res.send(productFeature)
 });
+
+router.put(`/gallery-images/:id`, multer(multerConfig).array('productImages', 20), async (req, res) => 
+    {
+        if(!mongoose.isValidObjectId(req.params.id)) 
+        {
+            return res.status(400).send('The product id is invalid')
+        }
+
+        const files = req.files
+
+        let imagesPaths = [];
+
+        const basePath = `${req.protocol}://${req.get('host')}/images`;  
+
+        if(files){
+            files.map(file => {
+                imagesPaths.push(`${basePath}${file.fileName}`)
+            })
+        }
+
+        const product = await Product.findByIdAndUpdate
+        ( 
+            req.params.id,
+            { 
+                productImages  : imagesPaths
+            },     
+            {new: true} 
+        )
+        if(!product)
+            return res.status(404)
+            .send('the product cannot be updated!');
+        
+        res.send(product);
+
+    }
+)
 
 module.exports = router;

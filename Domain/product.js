@@ -66,5 +66,10 @@ productSchema.set('toJSON', {
     virtuals: true
 });
 
+productSchema.pre('save', function () {
+    if(!this.productImage) {
+        this.productImage = `${process.env.UR}`
+    }
+})
 
 exports.Product = mongoose.model('Product', productSchema);

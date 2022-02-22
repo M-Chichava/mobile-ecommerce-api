@@ -13,6 +13,7 @@ function authJtw () {
     }).unless({
         path: 
         [
+            {url: /\/images(.*)/, methods: ['GET', 'OPTIONS']},
             {url: /\/api\/products(.*)/, methods: ['GET', 'OPTIONS']},
             {url: /\/api\/categories(.*)/, methods: ['GET', 'OPTIONS']}, 
             `${api}/users/login`,
