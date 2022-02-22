@@ -2,8 +2,11 @@ const { Product } = require('../../Domain/product');
 const express = require('express');
 const { Category } = require('../../Domain/category');
 const  mongoose  = require('mongoose');
+const multer = require('multer'); 
+const multerConfig = require('./multer')
 const router = express.Router();
 
+ 
 
 router.get(`/`, async (req, res) =>{
 
@@ -40,20 +43,26 @@ router.get(`/:id`, async (req, res) =>
 )
 
 
-router.post(`/`, async (req, res) =>{ 
-
+router.post(`/`, multer(multerConfig).single('productImage'), async (req, res) =>{ 
+    console.log(req.file) 
     const category = await Category.findById(req.body.category)
+    const file = req.file;
 
     if(!category){
 
-         res.status(400).send('Invalid category');
+         res.status(400).send({message: 'Invalid category'});
     }
+    if(!file){
 
+         res.status(400).send({message: 'The product file is missing'});
+    }
+    const fileName = req.file.filename
+    const basePath = `${req.protocol}://${req.get('host')}/images`;  
     const product = new Product({
         name  : req.body.name,
         description  : req.body.description,
         richdescription  :  req.body.richdescription,
-        imagesUrl  :  req.body.imagesUrl,  
+        productImage: `${basePath}${fileName}`,  
         brand  :  req.body.brand, 
         price  :  req.body.price,
         category  :  req.body.category,
@@ -72,7 +81,7 @@ router.post(`/`, async (req, res) =>{
     res.send(products);
 });
 
-router.put(`/:id`, async (req, res) => 
+router.put(`/:id`, multer(multerConfig).single('productImage'), async (req, res) => 
     {
        if(!mongoose.isValidObjectId(req.params.id)) 
             return res.status(400).send('The product id is invalid')
@@ -84,14 +93,32 @@ router.put(`/:id`, async (req, res) =>
              res.status(400).send('Invalid category');
         }
         
-        const product = await Product.findByIdAndUpdate
+        const product = await Product.findById(req.params.id)
+
+        if(!product){
+    
+             res.status(400).send('Invalid Product');
+        }
+        
+        const file = req.file
+        let imagePath;
+
+        if(file){
+            const fileName = req.file.filename
+            const basePath = `${req.protocol}://${req.get('host')}/images`;  
+            imagePath = `${basePath}${fileName}`
+        } else {
+            imagePath = product.productImage;
+        }
+        
+        const updatedproduct = await Product.findByIdAndUpdate
         ( 
             req.params.id,
             {
                 name  : req.body.name,
                 description  : req.body.description,
                 richdescription  : req.body.richdescription,
-                imagesUrl  : req.body.imagesUrl,
+                productImages  : req.body.image,
                 brand  : req.body.brand,
                 price  : req.body.price,
                 category  : req.body.category,
@@ -102,11 +129,11 @@ router.put(`/:id`, async (req, res) =>
             },     
             {new: true} 
         )
-        if(!product)
+        if(!updatedproduct)
             return res.status(404)
             .send('the product cannot be updated!');
         
-        res.send(product);
+        res.send(updatedproduct);
     }
 )
 
